@@ -207,21 +207,24 @@ class Algorithm(val ap: AlgorithmParams)
 
      * It is possible to use other grouping functions instead of max
      */
+val result = query.items.flatMap { itemId =>
+     model.itemIds.get(itemId).map { j =>
+       val d = for(i <- 0 until model.projection.numRows) yield model.projection(i, j)
+       val col = model.projection.transpose.multiply(new DenseVector(d.toArray))
+       for(k <- 0 until col.size) yield new ItemScore(model.itemIds.inverse
+         .getOrElse(k, default="NA"), col(k))
+     }.getOrElse(Seq())
+   }.groupBy {
+     case(ItemScore(itemId, _)) => itemId
+   }.map(_._2.max).filter {
+     case(ItemScore(itemId, _)) => !query.items.contains(itemId)
+   }.toArray.sorted.reverse.take(query.num+query.blackList.size)
+   //logger.info(s"Size is ${query.num+query.blackList.size}.")
+   logger.info(s"Res is ${result(0)}.")
 
-    val result = query.items.flatMap { itemId =>
-      model.itemIds.get(itemId).map { j =>
-        val d = for(i <- 0 until model.projection.numRows) yield model.projection(i, j)
-        val col = model.projection.transpose.multiply(new DenseVector(d.toArray))
-        for(k <- 0 until col.size) yield new ItemScore(model.itemIds.inverse
-          .getOrElse(k, default="NA"), col(k))
-      }.getOrElse(Seq())
-    }.groupBy {
-      case(ItemScore(itemId, _)) => itemId
-    }.map(_._2.max).filter {
-      case(ItemScore(itemId, _)) => !query.items.contains(itemId)
-    }.toArray.sorted.reverse.take(query.num)
 
-    if(result.isEmpty) logger.info(s"No prediction for items ${query.items}.")
-    PredictedResult(result)
+val m_result = result diff result.filter{result => List(result.item).forall(query.blackList.contains)}
+    if(result.isEmpty) logger.info(s"No prediction for items ${query.items.toString}.")
+    PredictedResult(m_result.take(query.num))
   }
 }

@@ -38,7 +38,7 @@ class DataSource(val dsp: DataSourceParams)
         val language: String = properties.get[String]("language")
         val release_date: String = properties.get[String]("release_date")
         val ratings: Double = properties.get[Double]("ratings")
-        val movieratings: Double = properties.get[Double]("movieratings")	
+        val movieratings: Double = properties.get[Double]("movieratings") 
         val musicratings: Double = properties.get[Double]("musicratings")
         val gross: Double = properties.get[String]("gross").toDouble
         val budget: Double = properties.get[String]("budget").toDouble
@@ -50,7 +50,7 @@ class DataSource(val dsp: DataSourceParams)
           actors, language, release_date, ratings, movieratings, musicratings, gross, budget, score)
       } catch {
         case e: Exception => {
-          //logger.error(properties.get[Array[String]]("writer"))	
+          //logger.error(properties.get[Array[String]]("writer")) 
           logger.error(s"Failed to get properties ${properties} of" +
             s" item ${entityId}. Exception: ${e}.")
           throw e
